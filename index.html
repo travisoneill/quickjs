@@ -5,11 +5,15 @@
     <title></title>
     <script src="index.js"></script>
     <link href="style.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.8/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.8/mode-html.js" type="text/javascript" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.8/mode-javascript.js" type="text/javascript" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.8/theme-twilight.js" type="text/javascript" charset="utf-8"></script>
   </head>
   <body>
     <div id="setup">
-      <textarea placeholder="HTML" class="setup-code" id="html-setup"></textarea>
-      <textarea placeholder="JS" class="setup-code" id="js-setup"></textarea>
+      <div placeholder="HTML" class="setup-code" id="html-setup"></div>
+      <div placeholder="JS" class="setup-code" id="js-setup"></div>
     </div>
     <div id="tests"></div>
     <div id="control">
@@ -17,5 +21,6 @@
       <button id="remove-test">REMOVE</button>
       <button id="run">RUN</button>
     </div>
+    <div id="test-html" style="display:none">asdafs</div>
   </body>
 </html>

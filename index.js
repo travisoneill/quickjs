@@ -3,8 +3,37 @@
 document.addEventListener('DOMContentLoaded', setupUI);
 
 function setupUI() {
-  document.getElementById('add-test').addEventListener('click', killEvt(addTest));
-  document.getElementById('remove-test').addEventListener('click', killEvt(removeTest));
+  document.getElementById('add-test').addEventListener('click', _kill(addTest));
+  document.getElementById('remove-test').addEventListener('click', _kill(removeTest));
+  document.getElementById('run').addEventListener('click', _kill(runTests));
+  setupEditor('js-setup', 'javascript');
+  setupEditor('html-setup', 'html');
+}
+
+function runTests() {
+  testSetup();
+}
+
+function testSetup() {
+  appendHtml();
+}
+
+function appendHtml() {
+  const htmlInput = document.getElementById('html-setup');
+  const html = ace.edit(htmlInput).session.getValue();
+  document.getElementById('test-html').innerHTML += html;
+}
+
+function executeJavascript() {
+  const jsCode = document.getElementById('js-setup');
+}
+
+function setupEditor(id, lang) {
+  const editor = ace.edit(id);
+  editor.setTheme('ace/theme/twilight');
+  editor.getSession().setMode(`ace/mode/${lang}`);
+  editor.setValue(lang);
+  editor.$blockScrolling = Infinity;
 }
 
 let nTest = 0;
@@ -29,12 +58,12 @@ function HTMLtag({ type, id, cls }) {
   return tag;
 }
 
-function killEvt(func) {
+function _kill(func, ...args) {
   return _wrapped;
 
   function _wrapped(e) {
     e.preventDefault();
     e.stopPropagation();
-    func();
+    func(...args);
   }
 }
