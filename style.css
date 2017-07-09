@@ -5,6 +5,7 @@
 .setup-code {
   width: 500px;
   height:300px;
+  margin-bottom: 20px;
 }
 
 .test {
@@ -14,4 +15,13 @@
 
 #tests {
   display: flex;
+}
+
+#result-display {
+  display: flex;
+}
+
+.result {
+  width: 200px;
+  height: 100px;
 }

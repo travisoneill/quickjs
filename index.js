@@ -85,11 +85,16 @@ function runTests() {
   const btn = document.getElementById('run');
   btn.dsabled = true;
   appendHTML();
+  const $container = document.getElementById('result-display');
+  $container.innerHTML = '';
   let testQ = setupTestContext();
   for (var i = 0; i < testQ.length; i++) {
+    const $res = HTMLtag({ type: 'div', cls: 'result', id: `result-${i}`});
     const test = testQ[i];
-    const results = test();
-    console.log(`Test ${i}:`, results);
+    const result = test();
+    $res.innerHTML = `<span>Test ${i}:</span></br>${result}`;
+    $container.appendChild($res);
+    console.log(`Test ${i}:`, result);
   }
   testQ.forEach(t => delete t);
   delete testQ;
@@ -112,23 +117,23 @@ function setupTestContext() {
 function makeRunner(funcStr, setupCode) {
   return _runner;
 
-  function _runner(...args) {
+  function _runner() {
     const func = eval(`${setupCode};${funcStr}`);
 
-    const __runTest = (...args) => {
-      let total = 0;
-      const runTimes = [];
-      while (total < 1000) {
+    const __runTest = () => {
+      let time = 0;
+      let iterations = 0;
+      while (time < 1000) {
         const t0 = Date.now();
-        func(...args);
+        func();
         const runTime = Date.now() - t0;
-        total += runTime;
-        runTimes.push(runTime);
+        time += runTime;
+        iterations += 1;
       }
-      return runTimes;
+      return iterations;
     }
 
-    return __runTest(...args);
+    return __runTest();
   }
 
 }
