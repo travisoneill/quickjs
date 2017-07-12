@@ -7,6 +7,7 @@ function setupUI() {
   document.getElementById('remove-test').addEventListener('click', _kill(removeTest));
   document.getElementById('run').addEventListener('click', _kill(runTests));
   document.getElementById('save').addEventListener('click', _kill(buildQuery));
+  document.getElementById('get-url').addEventListener('click', _kill(getHash));
 
   const queryParams = parseQuery(window.location.search);
   setupEditor('js-setup', 'javascript', queryParams.js);
@@ -180,5 +181,15 @@ function _kill(func) {
     e.preventDefault();
     e.stopPropagation();
     func();
+  }
+}
+
+function getHash() {
+  debugger;
+  if (window.Worker) {
+    const worker = new Worker('worker.js');
+    worker.postMessage('hello');
+  } else {
+    alert('Upgrade your shitty old browser!!!');
   }
 }
