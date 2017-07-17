@@ -7,7 +7,7 @@ function setupUI() {
   document.getElementById('remove-test').addEventListener('click', _kill(removeTest));
   document.getElementById('run').addEventListener('click', _kill(runTests));
   document.getElementById('save').addEventListener('click', _kill(buildQuery));
-  document.getElementById('get-url').addEventListener('click', _kill(getHash));
+  // document.getElementById('get-url').addEventListener('click', _kill(getHash));
 
   const queryParams = parseQuery(window.location.search);
   setupEditor('js-setup', 'javascript', queryParams.js);
