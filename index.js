@@ -15,7 +15,10 @@ function setupUI() {
   queryParams.tests.forEach(test => addTest(test.code));
 }
 
-function buildQuery() {
+const save = () => buildQuery('_self');
+const clone = () => buildQuery('_blank');
+
+function buildQuery(target) {
   const setupQuery = [];
   const setupHTML = encodeURI(getCode('html-setup'));
   const setupJS = encodeURI(getCode('js-setup'));
@@ -23,16 +26,15 @@ function buildQuery() {
     setupQuery.push(`html=}}${setupHTML}{{`);
   }
   if (setupJS) {
-    setupQuery.push(`js=}}${setupJS}{{`)
+    setupQuery.push(`js=}}${setupJS}{{`);
   }
   const testIDs = [...document.getElementsByClassName('test')].map(t => t.id);
   const testQuery = testIDs.map(id => `${id}=}}${encodeURI(getCode(id))}{{`);
   const queryItems = setupQuery.concat(testQuery);
   const queryString = queryItems.length > 0 ? '?' + queryItems.join('&') : '';
   const { origin, pathname } = window.location;
-  // alert(window.location.href + queryString);
-  window.open(origin + pathname + queryString);
-  // return `${setupQuery}&${testQuery}`;
+  const url = window.origin + pathname + queryString;
+  window.open(url, target);
 }
 
 function parseQuery(qs) {
@@ -181,15 +183,5 @@ function _kill(func) {
     e.preventDefault();
     e.stopPropagation();
     func();
-  }
-}
-
-function getHash() {
-  debugger;
-  if (window.Worker) {
-    const worker = new Worker('worker.js');
-    worker.postMessage('hello');
-  } else {
-    alert('Upgrade your shitty old browser!!!');
   }
 }
