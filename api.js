@@ -14,8 +14,8 @@ const endpoint = (req, res) => {
     res.end('No Query');
   }
 
-  // res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  // res.setHeader('Content-Type', 'application/json');
   const returnRes = responseHandler(data => {
     res.writeHead(200, { 'Content-Type': 'application/JSON' });
     res.end(JSON.stringify(data));
