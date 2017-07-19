@@ -15,6 +15,12 @@ function setupUI() {
   queryParams.tests.forEach(test => addTest(test.code));
 }
 
+async function shortenURL(query) {
+  const res = await fetch('/api' + query);
+  const json = await res.json();
+  console.log(JSON.parse(json));
+}
+
 const save = () => buildQuery('_self');
 const clone = () => buildQuery('_blank');
 
