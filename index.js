@@ -15,19 +15,20 @@ function setupUI() {
   queryParams.tests.forEach(test => addTest(test.code));
 }
 
-async function shortenURL(query) {
+async function shortenURL() {
+  const query = buildQuery();
   const apiURL = 'https://quickjsv000.appspot.com/api';
   const res = await fetch(apiURL + query);
   const json = await res.json();
-  console.log(JSON.parse(json));
-  const slug = json.id.replace('https://goo.gl/', '');
-  const url = `https://travisoneill.github.io/quickjs/${slug}`;
+  const slug = JSON.parse(json).id.replace('https://goo.gl/', '');
+  const url = `https://travisoneill.github.io/quickjs/?${slug}`;
+  prompt('Shortened URL', url);
 }
 
-const save = () => buildQuery('_self');
-const clone = () => buildQuery('_blank');
+// const save = () => buildQuery('_self');
+// const clone = () => buildQuery('_blank');
 
-function buildQuery(target) {
+function buildQuery() {
   const setupQuery = [];
   const setupHTML = encodeURI(getCode('html-setup'));
   const setupJS = encodeURI(getCode('js-setup'));
@@ -49,8 +50,13 @@ function buildQuery(target) {
 }
 
 function parseQuery(qs) {
-  const queryDict = { tests: [], };
+  const googlURL = (qs.match(/^\?[a-zA-Z0-9]{6}$/) || [])[0];
+  if (googlURL) {
+    window.open(`https://goo.gl/${googlURL.replace('?', '')}`, '_self');
+    return;
+  }
 
+  const queryDict = { tests: [], };
   if(!qs || qs === '?') {
     return queryDict;
   }
@@ -116,12 +122,11 @@ function runTests() {
 function setupTestContext() {
   const setupJS = getCode('js-setup');
   const _enclose = code => `() => {\n${code}\n}`;
-  const _decorate = funcStr => makeRunner(funcStr, setupJS);
+  const _buildRunners = funcStr => makeRunner(funcStr, setupJS);
   const testIDs = [...document.getElementsByClassName('test')].map(t => t.id);
   const testCode = testIDs.map(getCode);
   const funcs = testCode.map(_enclose);
-  const testRunners = funcs.map(_decorate);
-  return testRunners;
+  return funcs.map(_buildRunners);
 }
 
 
@@ -129,6 +134,7 @@ function makeRunner(funcStr, setupCode) {
   return _runner;
 
   function _runner() {
+    // TODO: get this to work w/o evaling running setup code each iteration
     const func = eval(`${setupCode};${funcStr}`);
 
     const __runTest = () => {
