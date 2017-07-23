@@ -2,27 +2,37 @@
 
 const http = require('http');
 const https = require('https');
-const apiKey = require('./keys');
 const port = process.env.PORT || 8000;
+
+const routes = (req, res) => {
+  switch (true) {
+    case /^\/api/.test(req.url):
+      endpoint(req, res);
+      break;
+    case /^\/test/.test(req.url):
+      console.log('Request Recieved');
+      res.end('Request Recieved');
+      break;
+    default:
+      res.end('Invalid Path');
+  }
+}
 
 const endpoint = (req, res) => {
   const query = (req.url.match(/\?.*$/) || [])[0];
-  if (!req.url.match(/^\/api/)) {
-    res.end('Invalid Path');
-  }
   if (!query) {
     res.end('No Query');
   }
 
   res.setHeader('Access-Control-Allow-Origin', '*');
   // res.setHeader('Content-Type', 'application/json');
-  const returnRes = responseHandler(data => {
+  const returnShortenedURL = responseHandler(data => {
     res.writeHead(200, { 'Content-Type': 'application/JSON' });
     res.end(JSON.stringify(data));
   });
-  const url = `https://travisoneill.github.io/quickjs${query}`;
 
-  shortenerAPICall(url, returnRes);
+  const url = `https://travisoneill.github.io/quickjs${query}`;
+  shortenerAPICall(url, returnShortenedURL);
 }
 
 const shortenerAPICall = (longUrl, callback) => {
@@ -34,7 +44,7 @@ const shortenerAPICall = (longUrl, callback) => {
 
   const options = {
     hostname: 'www.googleapis.com',
-    path: `/urlshortener/v1/url?key=${apiKey}`,
+    path: `/urlshortener/v1/url?key=${process.env.API_GOOGL}`,
     method: 'POST',
     headers: headers,
   }
@@ -44,6 +54,7 @@ const shortenerAPICall = (longUrl, callback) => {
   req.end();
 }
 
+// TODO: See if I can sed response as stream
 const responseHandler = callback => {
 
   const _handler = res => {
@@ -57,10 +68,9 @@ const responseHandler = callback => {
   };
 
   return _handler;
-
 }
 
-const server = http.createServer(endpoint);
+const server = http.createServer(routes);
 
 if (module === require.main) {
   server.listen(port, () => console.log(`Quickjs API listening on port ${port}`));
