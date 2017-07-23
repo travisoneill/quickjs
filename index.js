@@ -21,7 +21,7 @@ async function shortenURL(query) {
   const json = await res.json();
   console.log(JSON.parse(json));
   const slug = json.id.replace('https://goo.gl/', '');
-  const url = `https://travisoneill.github.io/quickjs/${slug}`
+  const url = `https://travisoneill.github.io/quickjs/${slug}`;
 }
 
 const save = () => buildQuery('_self');
@@ -49,7 +49,6 @@ function buildQuery(target) {
 }
 
 function parseQuery(qs) {
-
   const queryDict = { tests: [], };
 
   if(!qs || qs === '?') {

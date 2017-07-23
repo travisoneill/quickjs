@@ -31,7 +31,7 @@ const endpoint = (req, res) => {
     res.end(JSON.stringify(data));
   });
 
-  const url = `https://travisoneill.github.io/quickjs${query}`;
+  const url = `https://travisoneill.github.io/quickjs/${query}`;
   shortenerAPICall(url, returnShortenedURL);
 }
 
