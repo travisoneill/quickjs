@@ -7,7 +7,7 @@ function setupUI() {
   document.getElementById('remove-test').addEventListener('click', _kill(removeTest));
   document.getElementById('run').addEventListener('click', _kill(runTests));
   document.getElementById('save').addEventListener('click', _kill(buildQuery));
-  // document.getElementById('get-url').addEventListener('click', _kill(getHash));
+  document.getElementById('get-url').addEventListener('click', _kill(shortenURL));
 
   const queryParams = parseQuery(window.location.search);
   setupEditor('js-setup', 'javascript', queryParams.js);
@@ -16,9 +16,12 @@ function setupUI() {
 }
 
 async function shortenURL(query) {
-  const res = await fetch('/api' + query);
+  const apiURL = 'https://quickjsv000.appspot.com/api';
+  const res = await fetch(apiURL + query);
   const json = await res.json();
   console.log(JSON.parse(json));
+  const slug = json.id.replace('https://goo.gl/', '');
+  const url = `https://travisoneill.github.io/quickjs/${slug}`
 }
 
 const save = () => buildQuery('_self');
@@ -38,9 +41,11 @@ function buildQuery(target) {
   const testQuery = testIDs.map(id => `${id}=}}${encodeURI(getCode(id))}{{`);
   const queryItems = setupQuery.concat(testQuery);
   const queryString = queryItems.length > 0 ? '?' + queryItems.join('&') : '';
-  const { origin, pathname } = window.location;
-  const url = window.origin + pathname + queryString;
-  window.open(url, target);
+  window.location.search = queryString;
+  return queryString;
+  // const { origin, pathname } = window.location;
+  // const url = window.origin + pathname + queryString;
+  // window.open(url, target);
 }
 
 function parseQuery(qs) {
@@ -105,8 +110,6 @@ function runTests() {
     $container.appendChild($res);
     console.log(`Test ${i}:`, result);
   }
-  testQ.forEach(t => delete t);
-  delete testQ;
   removeHTML();
   btn.disabled = false;
 }
