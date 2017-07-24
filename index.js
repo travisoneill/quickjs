@@ -3,11 +3,12 @@
 document.addEventListener('DOMContentLoaded', setupUI);
 
 function setupUI() {
-  document.getElementById('add-test').addEventListener('click', _kill(addTest));
-  document.getElementById('remove-test').addEventListener('click', _kill(removeTest));
-  document.getElementById('run').addEventListener('click', _kill(runTests));
-  document.getElementById('save').addEventListener('click', _kill(buildQuery));
-  document.getElementById('get-url').addEventListener('click', _kill(shortenURL));
+  document.getElementById('add-test').addEventListener('click', stop(addTest));
+  document.getElementById('remove-test').addEventListener('click', stop(removeTest));
+  document.getElementById('run').addEventListener('click', stop(runTests));
+  document.getElementById('save').addEventListener('click', stop(save));
+  document.getElementById('clone').addEventListener('click', stop(clone));
+  document.getElementById('get-url').addEventListener('click', stop(shortenURL));
 
   const queryParams = parseQuery(window.location.search);
   setupEditor('js-setup', 'javascript', queryParams.js);
@@ -15,18 +16,19 @@ function setupUI() {
   queryParams.tests.forEach(test => addTest(test.code));
 }
 
+const webURL = 'https://travisoneill.github.io/quickjs';
+const apiURL = 'https://quickjsv000.appspot.com/api';
+
+const save = () => window.location.search = buildQuery();
+const clone = () => window.open(`${webURL}/${buildQuery()}`, '_blank');
+
 async function shortenURL() {
   const query = buildQuery();
-  const apiURL = 'https://quickjsv000.appspot.com/api';
   const res = await fetch(apiURL + query);
   const json = await res.json();
   const slug = JSON.parse(json).id.replace('https://goo.gl/', '');
-  const url = `https://travisoneill.github.io/quickjs/?${slug}`;
-  prompt('Shortened URL', url);
+  prompt('Shortened URL:', `${webURL}/?${slug}`);
 }
-
-// const save = () => buildQuery('_self');
-// const clone = () => buildQuery('_blank');
 
 function buildQuery() {
   const setupQuery = [];
@@ -42,11 +44,7 @@ function buildQuery() {
   const testQuery = testIDs.map(id => `${id}=}}${encodeURI(getCode(id))}{{`);
   const queryItems = setupQuery.concat(testQuery);
   const queryString = queryItems.length > 0 ? '?' + queryItems.join('&') : '';
-  window.location.search = queryString;
   return queryString;
-  // const { origin, pathname } = window.location;
-  // const url = window.origin + pathname + queryString;
-  // window.open(url, target);
 }
 
 function parseQuery(qs) {
@@ -61,23 +59,22 @@ function parseQuery(qs) {
     return queryDict;
   }
 
-  const validKey = k => k === 'js' || k === 'html' || k.match(/^test-\d*$/);
-  const validVal = v => v.replace(/\n/g, '').match(/^}}.*{{$/);
+  const _validKey = k => k === 'js' || k === 'html' || k.match(/^test-\d*$/);
+  const _validVal = v => v.replace(/\n/g, '').match(/^}}.*{{$/);
 
   const query = decodeURI(qs) + '&';
   let parsed = { key: '', value: '' };
   let state = 'key';
-  let i = query[0] === '?' ? 1 : 0;
-  while (i < query.length) {
+  var i = query[0] === '?' ? 1 : 0;
+  for (i; i < query.length; i++) {
     const [p2, p1, char, n1, n2] = new Array(5).fill(i - 2).map((n, i) => Math.max(0, n + i)).map(i => query[i]);
 
-    if (char === '=' && state === 'key' && validKey(parsed.key) && n1 === '}' && n2 === '}') {
+    if (char === '=' && state === 'key' && _validKey(parsed.key) && n1 === '}' && n2 === '}') {
       state = 'value';
-      i += 1;
       continue;
     }
 
-    if (char === '&' && state === 'value' && validVal(parsed.value) && p1 === '{' && p2 === '{') {
+    if (char === '&' && state === 'value' && _validVal(parsed.value) && p1 === '{' && p2 === '{') {
       state = 'key';
       if (parsed.key.match(/^test-\d*$/)) {
         queryDict.tests.push({ id: parsed.key, code: parsed.value.slice(2, -2) });
@@ -85,38 +82,61 @@ function parseQuery(qs) {
         queryDict[parsed.key] = parsed.value.slice(2, -2);
       }
       parsed = {key: '', value: ''};
-      i += 1;
       continue;
     }
 
     parsed[state] += char;
-    i += 1;
   }
 
   return queryDict;
 }
 
-const appendHTML = () => document.getElementById('test-html').innerHTML = getCode('html-setup');
-const removeHTML = () => document.getElementById('test-html').innerHTML = '';
 const getCode = id => ace.edit(document.getElementById(id)).session.getValue();
 
-function runTests() {
-  const btn = document.getElementById('run');
-  btn.dsabled = true;
-  appendHTML();
-  const $container = document.getElementById('result-display');
-  $container.innerHTML = '';
-  let testQ = setupTestContext();
-  for (var i = 0; i < testQ.length; i++) {
-    const $res = HTMLtag({ type: 'div', cls: 'result', id: `result-${i}`});
-    const test = testQ[i];
-    const result = test();
-    $res.innerHTML = `<span>Test ${i}:</span></br>${result}`;
-    $container.appendChild($res);
-    console.log(`Test ${i}:`, result);
+function empty(id) {
+  const $node = document.getElementById(id);
+  while ($node.firstChild) {
+    $node.removeChild($node.firstChild);
   }
-  removeHTML();
-  btn.disabled = false;
+  return $node;
+}
+
+// TODO: run tests in parallel w/ webworkers
+function runTests() {
+  const $btn = document.getElementById('run');
+  $btn.disabled = true;
+  empty('test-html').innerHTML = getCode('html-setup');
+  const $results = empty('result-display');
+  const testQ = setupTestContext();
+  for (var i = 0; i < testQ.length; i++) {
+    const test = testQ[i];
+    const iterations = test();
+    $results.innerHTML += displayResult(iterations, i);
+  }
+  empty('test-html');
+  $btn.disabled = false;
+}
+
+function displayResult(iterations, idx) {
+  const symbols = ['', 'm', 'μ', 'n'];
+  let i = 0;
+  let runtime = 1 / iterations;
+  while (runtime < 10) {
+    runtime *= 1000;
+    i += 1;
+  }
+  const result = `${runtime >>> 0} ${symbols[i]}s`;
+  return resultTemplate(iterations, result, idx);
+}
+
+const resultTemplate = (iterations, runtime, idx) => {
+  return (`
+    <div class="result" id="result${idx}">
+      <span>Test ${idx}:</span><br/>
+      <span>Iterations: ${iterations}</span><br/>
+      <span>Mean Runtime: ${runtime}</span>
+    </div>
+  `);
 }
 
 function setupTestContext() {
@@ -190,7 +210,7 @@ function HTMLtag({ type, id, cls }) {
   return tag;
 }
 
-function _kill(func) {
+function stop(func) {
   return _wrapped;
 
   function _wrapped(e) {
