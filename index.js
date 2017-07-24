@@ -154,7 +154,7 @@ function makeRunner(funcStr, setupCode) {
   return _runner;
 
   function _runner() {
-    // TODO: get this to work w/o evaling running setup code each iteration
+    // TODO: get this to work w/o evaling setup code each iteration
     const func = eval(`${setupCode};${funcStr}`);
 
     const __runTest = () => {
